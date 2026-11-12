@@ -1,0 +1,199 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dear Moments — Data Migration</title>
+
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 20px;
+            background: #080d1c;
+            color: #f8f9ff;
+            font-family: Arial, sans-serif;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 500px;
+            padding: 35px;
+            box-sizing: border-box;
+            border: 1px solid #293650;
+            border-radius: 20px;
+            background: #10182b;
+            text-align: center;
+        }
+
+        h1 {
+            color: #c4b5fd;
+        }
+
+        #status {
+            color: #a0a9c0;
+            line-height: 1.8;
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="card">
+        <h1>Dear Moments</h1>
+        <h3>Data Migration</h3>
+
+        <p id="status">Checking your account...</p>
+    </main>
+
+    <script type="module">
+
+        import {
+            auth,
+            db,
+            authReady,
+            collection,
+            doc,
+            getDocs,
+            getDoc,
+            setDoc
+        } from "./firebase.js";
+
+        const status = document.getElementById("status");
+
+        const LEGACY_EMAILS = [
+            "shihabreza0075@gmail.com",
+            "sadiaafrinruponti4@gmail.com",
+            "shihabthedreamer75@gmail.com"
+        ];
+
+        const COLLECTIONS = [
+            "memories",
+            "letters",
+            "littleJar"
+        ];
+
+        function showStatus(message) {
+            status.textContent = message;
+        }
+
+        async function migrateCollection(collectionName) {
+
+            showStatus("Checking " + collectionName + "...");
+
+            const sourceSnapshot = await getDocs(
+                collection(db, collectionName)
+            );
+
+            let copied = 0;
+            let skipped = 0;
+
+            for (const sourceDocument of sourceSnapshot.docs) {
+
+                const destinationRef = doc(
+                    db,
+                    "spaces",
+                    "shared",
+                    collectionName,
+                    sourceDocument.id
+                );
+
+                const existingDocument = await getDoc(
+                    destinationRef
+                );
+
+                if (existingDocument.exists()) {
+                    skipped++;
+                    continue;
+                }
+
+                await setDoc(
+                    destinationRef,
+                    sourceDocument.data()
+                );
+
+                copied++;
+            }
+
+            return {
+                copied,
+                skipped,
+                total: sourceSnapshot.size
+            };
+        }
+
+        async function startMigration() {
+
+            try {
+
+                const user = await authReady;
+
+                if (!user) {
+                    showStatus(
+                        "Please sign in using one of the original three accounts."
+                    );
+                    return;
+                }
+
+                await user.reload();
+
+                if (!user.emailVerified) {
+                    showStatus(
+                        "Please verify your email before migration."
+                    );
+                    return;
+                }
+
+                const email = (user.email || "").toLowerCase().trim();
+
+                if (!LEGACY_EMAILS.includes(email)) {
+                    showStatus(
+                        "Migration is available only to the original three accounts."
+                    );
+                    return;
+                }
+
+                let report = [];
+
+                for (const name of COLLECTIONS) {
+
+                    const result = await migrateCollection(name);
+
+                    report.push(
+                        name + ": " +
+                        result.copied + " copied, " +
+                        result.skipped + " already existed, " +
+                        result.total + " total."
+                    );
+
+                }
+
+                showStatus(
+                    "Migration completed successfully. " +
+                    report.join(" ")
+                );
+
+            } catch (error) {
+
+                console.error("Migration error:", error);
+
+                showStatus(
+                    "Migration stopped: " +
+                    (error.message || "Unknown error") +
+                    ". Please do not change or delete old data."
+                );
+
+            }
+
+        }
+
+        startMigration();
+
+    </script>
+
+</body>
+</html>
