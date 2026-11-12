@@ -1,7 +1,7 @@
 
 /* ==========================================
    DEAR MOMENTS — COMPLETE JAVASCRIPT
-   FIRESTORE MEMORY + SHARED LITTLE JAR
+   SHARED + PRIVATE FIRESTORE SYSTEM
    ========================================== */
 
 import {
@@ -9,12 +9,55 @@ import {
     authReady,
     collection,
     doc,
-    getDocs,
     getDoc,
     setDoc,
     deleteDoc,
     onSnapshot
 } from "./firebase.js";
+
+
+/* ==========================================
+   0. ACCOUNT CONFIGURATION
+   ========================================== */
+
+const LEGACY_EMAILS = [
+    "shihabreza0075@gmail.com",
+    "sadiaafrinruponti4@gmail.com",
+    "shihabthedreamer75@gmail.com"
+];
+
+let currentUser = null;
+let spaceId = null;
+
+let MEMORY_STORAGE_KEY = "";
+let JAR_STORAGE_KEY = "";
+let GALLERY_STORAGE_KEY = "";
+
+
+/* FIRESTORE PATH HELPERS */
+
+function getSpaceDocument(collectionName, id) {
+
+    return doc(
+        db,
+        "spaces",
+        spaceId,
+        collectionName,
+        String(id)
+    );
+
+}
+
+function getSpaceCollection(collectionName) {
+
+    return collection(
+        db,
+        "spaces",
+        spaceId,
+        collectionName
+    );
+
+}
 
 
 /* ==========================================
@@ -24,18 +67,23 @@ import {
 const starsContainer = document.getElementById("stars");
 
 if (starsContainer) {
+
     for (let i = 0; i < 100; i++) {
+
         const star = document.createElement("span");
 
         star.className = "star";
         star.style.left = Math.random() * 100 + "%";
         star.style.top = Math.random() * 100 + "%";
         star.style.animationDelay = Math.random() * 5 + "s";
-        star.style.animationDuration = (2 + Math.random() * 4) + "s";
+        star.style.animationDuration =
+            (2 + Math.random() * 4) + "s";
         star.style.opacity = Math.random();
 
         starsContainer.appendChild(star);
+
     }
+
 }
 
 
@@ -44,11 +92,13 @@ if (starsContainer) {
    ========================================== */
 
 function scrollToMemories() {
+
     const memories = document.getElementById("memories");
 
     if (memories) {
         memories.scrollIntoView({ behavior: "smooth" });
     }
+
 }
 
 window.scrollToMemories = scrollToMemories;
@@ -61,25 +111,39 @@ window.scrollToMemories = scrollToMemories;
 const revealElements = document.querySelectorAll(".reveal");
 
 if ("IntersectionObserver" in window) {
+
     const revealObserver = new IntersectionObserver(
+
         (entries, observer) => {
+
             entries.forEach(entry => {
+
                 if (entry.isIntersecting) {
+
                     entry.target.classList.add("active");
+
                     observer.unobserve(entry.target);
+
                 }
+
             });
+
         },
+
         { threshold: 0.12 }
+
     );
 
     revealElements.forEach(element => {
         revealObserver.observe(element);
     });
+
 } else {
+
     revealElements.forEach(element => {
         element.classList.add("active");
     });
+
 }
 
 
@@ -90,18 +154,28 @@ if ("IntersectionObserver" in window) {
 const moonScene = document.querySelector(".moon-scene");
 
 if (moonScene) {
+
     moonScene.addEventListener("mousemove", event => {
+
         const rect = moonScene.getBoundingClientRect();
 
-        const x = (event.clientX - rect.left - rect.width / 2) / 30;
-        const y = (event.clientY - rect.top - rect.height / 2) / 30;
+        const x =
+            (event.clientX - rect.left - rect.width / 2) / 30;
 
-        moonScene.style.transform = `translate(${x}px, ${y}px)`;
+        const y =
+            (event.clientY - rect.top - rect.height / 2) / 30;
+
+        moonScene.style.transform =
+            `translate(${x}px, ${y}px)`;
+
     });
 
     moonScene.addEventListener("mouseleave", () => {
+
         moonScene.style.transform = "translate(0, 0)";
+
     });
+
 }
 
 
@@ -110,55 +184,67 @@ if (moonScene) {
    ========================================== */
 
 const memoryForm = document.getElementById("memoryForm");
-const timelineList = document.getElementById("timelineList");
 
-const MEMORY_STORAGE_KEY = "dearMomentsMemories";
+const timelineList = document.getElementById("timelineList");
 
 let memoriesCache = [];
 let editingMemoryId = null;
 let memoryUnsubscribe = null;
 
 
-/* LOCAL BACKUP */
+/* LOCAL MEMORY BACKUP */
 
 function getLocalMemories() {
+
     try {
+
         const saved = JSON.parse(
             localStorage.getItem(MEMORY_STORAGE_KEY)
         );
 
         return Array.isArray(saved) ? saved : [];
+
     } catch (error) {
+
+        console.error("Local memory read failed:", error);
+
         return [];
+
     }
+
 }
 
 
 function saveLocalMemories(memories) {
+
     try {
+
         localStorage.setItem(
             MEMORY_STORAGE_KEY,
             JSON.stringify(memories)
         );
+
     } catch (error) {
+
         console.error("Local memory backup failed:", error);
+
     }
+
 }
 
-
-/* GET CURRENT MEMORIES */
 
 function getMemories() {
     return memoriesCache;
 }
 
 
-/* CREATE SEARCH AND FILTER AREA */
+/* MEMORY SEARCH AND FILTER UI */
 
 if (
     timelineList &&
     !document.getElementById("memoryTools")
 ) {
+
     const memoryTools = document.createElement("div");
 
     memoryTools.id = "memoryTools";
@@ -173,6 +259,7 @@ if (
         >
 
         <div class="memory-date-filters">
+
             <div>
                 <label for="memoryDateFrom">From Date</label>
                 <input type="date" id="memoryDateFrom">
@@ -182,6 +269,7 @@ if (
                 <label for="memoryDateTo">To Date</label>
                 <input type="date" id="memoryDateTo">
             </div>
+
         </div>
 
         <button type="button" id="clearMemoryFilters">
@@ -199,6 +287,7 @@ if (
     const memoryStyle = document.createElement("style");
 
     memoryStyle.textContent = `
+
         .memory-tools {
             width: 100%;
             margin: 25px 0;
@@ -317,14 +406,18 @@ if (
         }
 
         @media (max-width: 600px) {
+
             .memory-date-filters {
                 grid-template-columns: 1fr;
                 gap: 0;
             }
+
         }
+
     `;
 
     document.head.appendChild(memoryStyle);
+
 }
 
 
@@ -333,11 +426,14 @@ if (
 let cancelMemoryEditButton = null;
 
 if (memoryForm) {
+
     cancelMemoryEditButton =
         document.getElementById("cancelMemoryEdit");
 
     if (!cancelMemoryEditButton) {
-        cancelMemoryEditButton = document.createElement("button");
+
+        cancelMemoryEditButton =
+            document.createElement("button");
 
         cancelMemoryEditButton.type = "button";
         cancelMemoryEditButton.id = "cancelMemoryEdit";
@@ -345,21 +441,23 @@ if (memoryForm) {
         cancelMemoryEditButton.textContent = "Cancel Editing";
 
         memoryForm.appendChild(cancelMemoryEditButton);
+
     }
+
 }
 
 
 /* DISPLAY MEMORIES */
 
 function displayMemories() {
+
     if (!timelineList) return;
 
     const memories = getMemories();
 
     const searchValue =
-        document.getElementById("memorySearch")?.value
-            .trim()
-            .toLowerCase() || "";
+        document.getElementById("memorySearch")
+            ?.value.trim().toLowerCase() || "";
 
     const dateFrom =
         document.getElementById("memoryDateFrom")?.value || "";
@@ -368,10 +466,20 @@ function displayMemories() {
         document.getElementById("memoryDateTo")?.value || "";
 
     const filteredMemories = memories
+
         .filter(memory => {
+
             const matchesSearch =
-                (memory.title || "").toLowerCase().includes(searchValue) ||
-                (memory.description || "").toLowerCase().includes(searchValue);
+
+                (memory.title || "")
+                    .toLowerCase()
+                    .includes(searchValue)
+
+                ||
+
+                (memory.description || "")
+                    .toLowerCase()
+                    .includes(searchValue);
 
             const matchesFrom =
                 !dateFrom || memory.date >= dateFrom;
@@ -380,10 +488,13 @@ function displayMemories() {
                 !dateTo || memory.date <= dateTo;
 
             return matchesSearch && matchesFrom && matchesTo;
+
         })
+
         .sort((a, b) => {
             return new Date(b.date) - new Date(a.date);
         });
+
 
     timelineList.innerHTML = "";
 
@@ -391,50 +502,74 @@ function displayMemories() {
         document.getElementById("memoryResultsCount");
 
     if (resultsCount) {
+
         resultsCount.textContent =
             `Showing ${filteredMemories.length} of ${memories.length} memories`;
+
     }
 
+
     if (memories.length === 0) {
+
         timelineList.innerHTML = `
+
             <div class="empty-message">
                 <span>✧</span>
                 <p>No memories added yet.</p>
                 <small>Your beautiful journey starts here.</small>
             </div>
+
         `;
+
         return;
+
     }
 
+
     if (filteredMemories.length === 0) {
+
         timelineList.innerHTML = `
+
             <div class="memory-empty-filter">
                 <span>✧</span>
                 <p>No matching memories found.</p>
                 <small>Try another search or clear your filters.</small>
             </div>
+
         `;
+
         return;
+
     }
 
+
     filteredMemories.forEach(memory => {
+
         const card = document.createElement("div");
+
         card.className = "timeline-card";
 
         const title = document.createElement("h3");
-        title.textContent = memory.title;
+
+        title.textContent = memory.title || "";
 
         const date = document.createElement("span");
+
         date.className = "timeline-date";
-        date.textContent = memory.date;
+
+        date.textContent = memory.date || "";
 
         const description = document.createElement("p");
-        description.textContent = memory.description;
+
+        description.textContent = memory.description || "";
 
         const actions = document.createElement("div");
+
         actions.className = "memory-card-actions";
 
+
         const editButton = document.createElement("button");
+
         editButton.type = "button";
         editButton.className = "edit-memory";
         editButton.textContent = "Edit";
@@ -443,7 +578,9 @@ function displayMemories() {
             editMemory(memory.id);
         });
 
+
         const deleteButton = document.createElement("button");
+
         deleteButton.type = "button";
         deleteButton.className = "delete-memory";
         deleteButton.textContent = "Delete";
@@ -452,154 +589,236 @@ function displayMemories() {
             deleteMemory(memory.id);
         });
 
+
         actions.append(editButton, deleteButton);
 
         card.append(title, date, description, actions);
+
         timelineList.appendChild(card);
+
     });
+
+}
+
+
+/* IMPORT OLD LOCAL MEMORIES */
+
+async function migrateOldLocalMemories() {
+
+    // Only the original accounts may import old shared data.
+
+    if (spaceId !== "shared") return;
+
+    const localMemories = getLocalMemories();
+
+    for (const memory of localMemories) {
+
+        if (!memory.id) continue;
+
+        const memoryRef = getSpaceDocument(
+            "memories",
+            memory.id
+        );
+
+        const existingMemory = await getDoc(memoryRef);
+
+        if (!existingMemory.exists()) {
+
+            await setDoc(memoryRef, {
+
+                ...memory,
+
+                id: String(memory.id)
+
+            });
+
+        }
+
+    }
+
 }
 
 
 /* INITIALIZE FIRESTORE MEMORIES */
 
 async function initializeMemories() {
+
     try {
-        const user = await authReady;
 
-        if (!user) return;
+        if (!currentUser || !spaceId) return;
 
-        const memoriesCollection = collection(db, "memories");
+        // Load this account's local backup.
 
-        // Import old local memories without overwriting
-        // memories that already exist in Firestore.
+        memoriesCache = getLocalMemories();
 
-        const localMemories = getLocalMemories();
+        displayMemories();
 
-        for (const memory of localMemories) {
-            if (!memory.id) continue;
 
-            const memoryRef = doc(
-                db,
-                "memories",
-                String(memory.id)
-            );
+        // Import old local data only for the shared space.
 
-            const existingMemory = await getDoc(memoryRef);
+        await migrateOldLocalMemories();
 
-            if (!existingMemory.exists()) {
-                await setDoc(memoryRef, memory);
-            }
-        }
-
-        // Listen for shared memories in real time.
 
         if (memoryUnsubscribe) {
             memoryUnsubscribe();
         }
 
+
+        // Listen to this account's own Firestore space.
+
         memoryUnsubscribe = onSnapshot(
-            memoriesCollection,
+
+            getSpaceCollection("memories"),
+
             snapshot => {
+
                 memoriesCache = snapshot.docs.map(item => ({
+
                     ...item.data(),
+
                     id: item.id
+
                 }));
 
                 saveLocalMemories(memoriesCache);
+
                 displayMemories();
-            },
-            error => {
-                console.error("Firestore memory error:", error);
-                alert(
-                    "Could not load shared memories. Please check your Firebase account and email verification."
+
+                console.log(
+                    "Memories synchronized:",
+                    spaceId,
+                    memoriesCache.length
                 );
+
+            },
+
+            error => {
+
+                console.error("Firestore memory error:", error);
+
+                alert(
+                    "Could not load memories. Please check your Firestore permissions."
+                );
+
             }
+
         );
 
     } catch (error) {
+
         console.error("Memory initialization failed:", error);
 
         alert(
-            "Could not connect to Firestore. Please check your internet connection and Firebase settings."
+            "Could not connect to Firestore. Please check your connection and Firebase settings."
         );
+
     }
+
 }
 
 
 /* EDIT MEMORY */
 
 function editMemory(id) {
+
     const memory = getMemories().find(item => {
+
         return String(item.id) === String(id);
+
     });
 
     if (!memory || !memoryForm) return;
 
+
     editingMemoryId = memory.id;
 
     document.getElementById("memoryTitle").value =
-        memory.title;
+        memory.title || "";
 
     document.getElementById("memoryDate").value =
-        memory.date;
+        memory.date || "";
 
     document.getElementById("memoryDescription").value =
-        memory.description;
+        memory.description || "";
+
 
     const submitButton =
         memoryForm.querySelector('[type="submit"]');
 
     if (submitButton) {
+
         submitButton.innerHTML =
             `Update Memory <span>♡</span>`;
+
     }
+
 
     if (cancelMemoryEditButton) {
+
         cancelMemoryEditButton.style.display = "block";
+
     }
 
+
     memoryForm.scrollIntoView({
+
         behavior: "smooth",
+
         block: "center"
+
     });
 
     document.getElementById("memoryTitle").focus();
+
 }
 
 
 /* CANCEL EDITING */
 
 function cancelMemoryEditing() {
+
     editingMemoryId = null;
 
     if (memoryForm) {
+
         memoryForm.reset();
 
         const submitButton =
             memoryForm.querySelector('[type="submit"]');
 
         if (submitButton) {
+
             submitButton.innerHTML =
                 `Save This Memory <span>♡</span>`;
+
         }
+
     }
+
 
     if (cancelMemoryEditButton) {
+
         cancelMemoryEditButton.style.display = "none";
+
     }
+
 }
 
+
 if (cancelMemoryEditButton) {
+
     cancelMemoryEditButton.addEventListener(
         "click",
         cancelMemoryEditing
     );
+
 }
 
 
 /* DELETE MEMORY */
 
 async function deleteMemory(id) {
+
     const confirmed = confirm(
         "Are you sure you want to delete this memory?"
     );
@@ -607,47 +826,66 @@ async function deleteMemory(id) {
     if (!confirmed) return;
 
     try {
-        const user = await authReady;
 
-        if (!user) {
+        if (!currentUser || !spaceId) {
+
             alert("Please log in first.");
+
             return;
+
         }
 
         await deleteDoc(
-            doc(db, "memories", String(id))
+            getSpaceDocument("memories", id)
         );
 
         if (String(editingMemoryId) === String(id)) {
+
             cancelMemoryEditing();
+
         }
 
     } catch (error) {
+
         console.error("Delete memory error:", error);
-        alert("Could not delete this memory. Please try again.");
+
+        alert(
+            "Could not delete this memory. Please try again."
+        );
+
     }
+
 }
 
 
 /* SAVE AND UPDATE MEMORY */
 
 if (memoryForm) {
+
     memoryForm.addEventListener("submit", async event => {
+
         event.preventDefault();
 
         const title =
-            document.getElementById("memoryTitle")?.value.trim();
+            document.getElementById("memoryTitle")
+                ?.value.trim();
 
         const date =
             document.getElementById("memoryDate")?.value;
 
         const description =
-            document.getElementById("memoryDescription")?.value.trim();
+            document.getElementById("memoryDescription")
+                ?.value.trim();
+
 
         if (!title || !date || !description) {
+
             alert("Please complete all fields.");
+
             return;
+
         }
+
 
         const submitButton =
             memoryForm.querySelector('[type="submit"]');
@@ -656,79 +894,124 @@ if (memoryForm) {
             submitButton.disabled = true;
         }
 
-        try {
-            const user = await authReady;
 
-            if (!user) {
-                alert("Please log in first.");
-                return;
+        try {
+
+            if (!currentUser || !spaceId) {
+
+                throw new Error("Please log in first.");
+
             }
 
+
             if (editingMemoryId !== null) {
+
+                const existingMemory = getMemories().find(item => {
+
+                    return String(item.id) ===
+                        String(editingMemoryId);
+
+                }) || {};
+
+
                 const updatedMemory = {
-                    ...getMemories().find(item =>
-                        String(item.id) === String(editingMemoryId)
-                    ),
+
+                    ...existingMemory,
+
                     id: String(editingMemoryId),
+
                     title,
+
                     date,
+
                     description
+
                 };
 
+
                 await setDoc(
-                    doc(db, "memories", String(editingMemoryId)),
+
+                    getSpaceDocument(
+                        "memories",
+                        editingMemoryId
+                    ),
+
                     updatedMemory
+
                 );
+
 
                 cancelMemoryEditing();
 
                 alert("Your memory has been updated. ♡");
 
             } else {
+
                 const newMemory = {
+
                     id: Date.now().toString(),
+
                     title,
+
                     date,
+
                     description
+
                 };
 
+
                 await setDoc(
-                    doc(db, "memories", newMemory.id),
+
+                    getSpaceDocument(
+                        "memories",
+                        newMemory.id
+                    ),
+
                     newMemory
+
                 );
+
 
                 memoryForm.reset();
 
                 alert("Your memory has been saved. ♡");
+
             }
 
         } catch (error) {
+
             console.error("Save memory error:", error);
 
             alert(
-                "Could not save your memory. Please check your internet connection and Firebase settings."
+                "Could not save your memory. Please check your connection and Firebase settings."
             );
 
         } finally {
+
             if (submitButton) {
                 submitButton.disabled = false;
             }
+
         }
+
     });
+
 }
 
 
-/* SEARCH */
+/* MEMORY SEARCH */
 
 const memorySearch =
     document.getElementById("memorySearch");
 
 if (memorySearch) {
+
     memorySearch.addEventListener("input", displayMemories);
+
 }
 
 
-/* DATE FILTER */
+/* MEMORY DATE FILTERS */
 
 const memoryDateFrom =
     document.getElementById("memoryDateFrom");
@@ -737,35 +1020,44 @@ const memoryDateTo =
     document.getElementById("memoryDateTo");
 
 if (memoryDateFrom) {
-    memoryDateFrom.addEventListener("change", displayMemories);
+
+    memoryDateFrom.addEventListener(
+        "change",
+        displayMemories
+    );
+
 }
 
 if (memoryDateTo) {
-    memoryDateTo.addEventListener("change", displayMemories);
+
+    memoryDateTo.addEventListener(
+        "change",
+        displayMemories
+    );
+
 }
 
 
-/* CLEAR FILTERS */
+/* CLEAR MEMORY FILTERS */
 
 const clearMemoryFilters =
     document.getElementById("clearMemoryFilters");
 
 if (clearMemoryFilters) {
+
     clearMemoryFilters.addEventListener("click", () => {
+
         if (memorySearch) memorySearch.value = "";
+
         if (memoryDateFrom) memoryDateFrom.value = "";
+
         if (memoryDateTo) memoryDateTo.value = "";
 
         displayMemories();
+
     });
+
 }
-
-
-/* INITIALIZE TIMELINE */
-
-memoriesCache = getLocalMemories();
-displayMemories();
-initializeMemories();
 
 
 /* ==========================================
@@ -773,28 +1065,37 @@ initializeMemories();
    ========================================== */
 
 const photoInput = document.getElementById("photoInput");
-const galleryGrid = document.getElementById("galleryGrid");
 
-const GALLERY_STORAGE_KEY = "dearMomentsGallery";
+const galleryGrid = document.getElementById("galleryGrid");
 
 let galleryFiles = [];
 
 
 function getGalleryPhotos() {
+
     try {
+
         const photos = JSON.parse(
             localStorage.getItem(GALLERY_STORAGE_KEY)
         );
 
         return Array.isArray(photos) ? photos : [];
+
     } catch (error) {
+
+        console.error("Gallery read failed:", error);
+
         return [];
+
     }
+
 }
 
 
 function saveGalleryPhotos(photos) {
+
     try {
+
         localStorage.setItem(
             GALLERY_STORAGE_KEY,
             JSON.stringify(photos)
@@ -803,12 +1104,15 @@ function saveGalleryPhotos(photos) {
         return true;
 
     } catch (error) {
+
         alert(
             "Your browser storage is full. Try removing some photos."
         );
 
         return false;
+
     }
+
 }
 
 
@@ -820,12 +1124,15 @@ if (
     galleryUpload &&
     !document.getElementById("galleryDetailsForm")
 ) {
+
     const detailsForm = document.createElement("form");
 
     detailsForm.id = "galleryDetailsForm";
+
     detailsForm.className = "gallery-details-form";
 
     detailsForm.innerHTML = `
+
         <input
             type="text"
             id="photoCaption"
@@ -835,6 +1142,7 @@ if (
         <input type="date" id="photoDate">
 
         <div class="gallery-form-buttons">
+
             <button type="submit" id="savePhotoButton">
                 Save Photo
             </button>
@@ -842,43 +1150,65 @@ if (
             <button type="button" id="cancelPhotoButton">
                 Cancel
             </button>
+
         </div>
+
     `;
 
     galleryUpload.appendChild(detailsForm);
+
 }
 
 
 /* IMAGE COMPRESSION */
 
 function compressImage(file) {
+
     return new Promise((resolve, reject) => {
+
         const reader = new FileReader();
 
         reader.onload = event => {
+
             const image = new Image();
 
             image.onload = () => {
+
                 const canvas = document.createElement("canvas");
 
                 const maxWidth = 1000;
+
                 const maxHeight = 1000;
 
                 let width = image.width;
+
                 let height = image.height;
 
-                if (width > maxWidth || height > maxHeight) {
+
+                if (
+                    width > maxWidth ||
+                    height > maxHeight
+                ) {
+
                     const ratio = Math.min(
+
                         maxWidth / width,
+
                         maxHeight / height
+
                     );
 
                     width *= ratio;
+
                     height *= ratio;
+
                 }
 
+
                 canvas.width = width;
+
                 canvas.height = height;
+
 
                 const context = canvas.getContext("2d");
 
@@ -890,112 +1220,187 @@ function compressImage(file) {
                     height
                 );
 
+
                 resolve(
                     canvas.toDataURL("image/jpeg", 0.75)
                 );
+
             };
 
+
             image.onerror = reject;
+
             image.src = event.target.result;
+
         };
 
+
         reader.onerror = reject;
+
         reader.readAsDataURL(file);
+
     });
+
 }
 
 
 /* DISPLAY GALLERY */
 
 function displayGallery() {
-    if (!galleryGrid) return;
+
+    if (!galleryGrid || !GALLERY_STORAGE_KEY) return;
 
     const photos = getGalleryPhotos();
 
     galleryGrid.innerHTML = "";
 
+
     if (photos.length === 0) {
+
         galleryGrid.innerHTML = `
+
             <p class="empty-message">
                 Your gallery is waiting for beautiful moments. ♡
             </p>
+
         `;
+
         return;
+
     }
 
+
     photos.sort((a, b) => {
-        return new Date(b.date || 0) - new Date(a.date || 0);
+
+        return new Date(b.date || 0) -
+            new Date(a.date || 0);
+
     });
 
+
     photos.forEach(photo => {
+
         const card = document.createElement("div");
+
         card.className = "gallery-card";
+
 
         const image = document.createElement("img");
 
         image.src = photo.image;
+
         image.alt = photo.caption || "Memory photo";
 
         image.addEventListener("click", () => {
+
             openLightbox(photo.image);
+
         });
 
+
         const caption = document.createElement("p");
+
         caption.className = "gallery-caption";
-        caption.textContent = photo.caption || "A beautiful moment";
+
+        caption.textContent =
+            photo.caption || "A beautiful moment";
+
 
         const date = document.createElement("span");
+
         date.className = "gallery-date";
+
         date.textContent = photo.date || "";
 
+
         const deleteButton = document.createElement("button");
+
         deleteButton.className = "delete-photo";
+
         deleteButton.textContent = "Delete";
 
         deleteButton.addEventListener("click", () => {
+
             deletePhoto(photo.id);
+
         });
 
-        card.append(image, caption, date, deleteButton);
+
+        card.append(
+            image,
+            caption,
+            date,
+            deleteButton
+        );
+
         galleryGrid.appendChild(card);
+
     });
+
 }
 
 
 /* DELETE PHOTO */
 
 function deletePhoto(id) {
+
+    const confirmed = confirm(
+        "Are you sure you want to delete this photo?"
+    );
+
+    if (!confirmed) return;
+
+
     const updatedPhotos = getGalleryPhotos().filter(photo => {
+
         return photo.id !== id;
+
     });
 
+
     if (saveGalleryPhotos(updatedPhotos)) {
+
         displayGallery();
+
     }
+
 }
 
 
 /* PHOTO SELECTION */
 
 if (photoInput) {
+
     photoInput.addEventListener("change", event => {
+
         const files = Array.from(event.target.files);
 
         galleryFiles = files.filter(file => {
+
             return file.type.startsWith("image/");
+
         });
+
 
         const detailsForm =
             document.getElementById("galleryDetailsForm");
 
+
         if (detailsForm && galleryFiles.length > 0) {
+
             detailsForm.style.display = "block";
+
         }
 
+
         if (galleryFiles.length === 0 && files.length > 0) {
+
             alert("Please select valid image files.");
+
         }
+
     });
+
 }
 
 
@@ -1005,69 +1410,120 @@ const galleryDetailsForm =
     document.getElementById("galleryDetailsForm");
 
 if (galleryDetailsForm) {
+
     galleryDetailsForm.addEventListener("submit", async event => {
+
         event.preventDefault();
 
-        if (galleryFiles.length === 0) {
-            alert("Please select a photo first.");
+
+        if (!GALLERY_STORAGE_KEY) {
+
+            alert("Please wait until your account is ready.");
+
             return;
+
         }
 
+
+        if (galleryFiles.length === 0) {
+
+            alert("Please select a photo first.");
+
+            return;
+
+        }
+
+
         const caption =
-            document.getElementById("photoCaption")?.value.trim();
+            document.getElementById("photoCaption")
+                ?.value.trim();
+
 
         const date =
             document.getElementById("photoDate")?.value ||
+
             new Date().toISOString().split("T")[0];
+
 
         const saveButton =
             document.getElementById("savePhotoButton");
 
+
         if (saveButton) {
+
             saveButton.disabled = true;
+
             saveButton.textContent = "Saving...";
+
         }
 
+
         try {
+
             const photos = getGalleryPhotos();
 
+
             for (const file of galleryFiles) {
-                const compressedImage = await compressImage(file);
+
+                const compressedImage =
+                    await compressImage(file);
+
 
                 photos.push({
+
                     id: Date.now().toString() +
+
                         Math.random().toString(36).slice(2),
 
                     image: compressedImage,
+
                     caption: caption || file.name,
+
                     date
+
                 });
+
             }
 
+
             if (saveGalleryPhotos(photos)) {
+
                 galleryFiles = [];
 
                 galleryDetailsForm.reset();
+
                 galleryDetailsForm.style.display = "none";
+
 
                 if (photoInput) {
                     photoInput.value = "";
                 }
 
+
                 displayGallery();
+
             }
 
         } catch (error) {
+
             console.error("Gallery error:", error);
+
             alert("Could not save the selected photo.");
 
         } finally {
+
             if (saveButton) {
+
                 saveButton.disabled = false;
+
                 saveButton.textContent = "Save Photo";
+
             }
+
         }
+
     });
+
 }
 
 
@@ -1077,18 +1533,27 @@ const cancelPhotoButton =
     document.getElementById("cancelPhotoButton");
 
 if (cancelPhotoButton) {
+
     cancelPhotoButton.addEventListener("click", () => {
+
         galleryFiles = [];
+
 
         if (photoInput) {
             photoInput.value = "";
         }
 
+
         if (galleryDetailsForm) {
+
             galleryDetailsForm.reset();
+
             galleryDetailsForm.style.display = "none";
+
         }
+
     });
+
 }
 
 
@@ -1097,85 +1562,118 @@ if (cancelPhotoButton) {
    ========================================== */
 
 function openLightbox(imageSource) {
-    let lightbox = document.getElementById("memoryLightbox");
+
+    let lightbox =
+        document.getElementById("memoryLightbox");
+
 
     if (!lightbox) {
+
         lightbox = document.createElement("div");
 
         lightbox.id = "memoryLightbox";
+
         lightbox.className = "memory-lightbox";
 
+
         lightbox.innerHTML = `
-            <button class="lightbox-close" aria-label="Close">
+
+            <button
+                class="lightbox-close"
+                aria-label="Close"
+            >
                 &times;
             </button>
 
             <img src="" alt="Full size memory">
+
         `;
+
 
         document.body.appendChild(lightbox);
 
+
         lightbox.addEventListener("click", event => {
+
             if (
+
                 event.target === lightbox ||
+
                 event.target.classList.contains("lightbox-close")
+
             ) {
+
                 closeLightbox();
+
             }
+
         });
+
     }
 
+
     const lightboxImage = lightbox.querySelector("img");
+
     lightboxImage.src = imageSource;
 
     lightbox.classList.add("active");
+
 }
 
 
 function closeLightbox() {
+
     const lightbox =
         document.getElementById("memoryLightbox");
 
     if (lightbox) {
+
         lightbox.classList.remove("active");
+
     }
+
 }
 
 
 document.addEventListener("keydown", event => {
+
     if (event.key === "Escape") {
+
         closeLightbox();
+
     }
+
 });
-
-
-displayGallery();
 
 
 /* ==========================================
    8. LITTLE THINGS JAR — FIRESTORE
-   SHARED BETWEEN BOTH ACCOUNTS
+   SHARED + PRIVATE
    ========================================== */
 
 const jarForm = document.getElementById("jarForm");
+
 const jarInput = document.getElementById("jarInput");
 
 const jarMessage = document.getElementById("jarMessage");
+
 const jarCounter = document.getElementById("jarCounter");
 
 const drawMessageButton =
     document.getElementById("drawMessageButton");
 
-const JAR_STORAGE_KEY = "dearMomentsLittleJar";
 
 let jarNotesCache = [];
+
 let jarUnsubscribe = null;
 
 
-/* LOCAL BACKUP */
+/* LOCAL JAR BACKUP */
 
 function getLocalJarNotes() {
+
     try {
+
         const notes = JSON.parse(
             localStorage.getItem(JAR_STORAGE_KEY)
         );
@@ -1183,41 +1681,93 @@ function getLocalJarNotes() {
         return Array.isArray(notes) ? notes : [];
 
     } catch (error) {
+
         console.error("Local jar backup read failed:", error);
+
         return [];
+
     }
+
 }
 
 
 function saveLocalJarNotes(notes) {
+
     try {
+
         localStorage.setItem(
             JAR_STORAGE_KEY,
             JSON.stringify(notes)
         );
 
     } catch (error) {
+
         console.error("Local jar backup failed:", error);
+
     }
+
 }
 
-
-/* GET CURRENT NOTES */
 
 function getJarNotes() {
     return jarNotesCache;
 }
 
 
-/* UPDATE NOTE COUNTER */
+/* UPDATE JAR COUNTER */
 
 function updateJarCounter() {
+
     if (!jarCounter) return;
 
     const notes = getJarNotes();
 
     jarCounter.textContent =
+
         `${notes.length} little ${notes.length === 1 ? "memory" : "memories"} saved`;
+
+}
+
+
+/* IMPORT OLD LOCAL JAR NOTES */
+
+async function migrateOldLocalJarNotes() {
+
+    // Only original shared accounts can import old shared notes.
+
+    if (spaceId !== "shared") return;
+
+    const localNotes = getLocalJarNotes();
+
+
+    for (const note of localNotes) {
+
+        if (!note.id || !note.message) continue;
+
+
+        const noteRef = getSpaceDocument(
+            "littleJar",
+            note.id
+        );
+
+
+        const existingNote = await getDoc(noteRef);
+
+
+        if (!existingNote.exists()) {
+
+            await setDoc(noteRef, {
+
+                ...note,
+
+                id: String(note.id)
+
+            });
+
+        }
+
+    }
+
 }
 
 
@@ -1227,67 +1777,60 @@ async function initializeJar() {
 
     try {
 
-        const user = await authReady;
-
-        if (!user) {
-            console.warn("No authenticated user found for Little Jar.");
-            return;
-        }
-
-        const localNotes = getLocalJarNotes();
-
-        // Migrate old local notes to Firestore.
-        // Existing Firestore notes will not be overwritten.
-
-        for (const note of localNotes) {
-
-            if (!note.id || !note.message) continue;
-
-            const noteRef = doc(
-                db,
-                "littleJar",
-                String(note.id)
-            );
-
-            const existingNote = await getDoc(noteRef);
-
-            if (!existingNote.exists()) {
-                await setDoc(noteRef, {
-                    ...note,
-                    id: String(note.id)
-                });
-            }
-        }
+        if (!currentUser || !spaceId) return;
 
 
-        // Remove previous listener if one exists.
+        // Load the correct account's local backup.
+
+        jarNotesCache = getLocalJarNotes();
+
+        updateJarCounter();
+
+
+        // Import old browser notes only for the shared space.
+
+        await migrateOldLocalJarNotes();
+
 
         if (jarUnsubscribe) {
             jarUnsubscribe();
         }
 
 
-        // Listen for shared notes in real time.
+        // Real-time listener for this account's space.
 
         jarUnsubscribe = onSnapshot(
-            collection(db, "littleJar"),
+
+            getSpaceCollection("littleJar"),
 
             snapshot => {
 
                 jarNotesCache = snapshot.docs.map(item => ({
+
                     ...item.data(),
+
                     id: item.id
+
                 }));
+
 
                 saveLocalJarNotes(jarNotesCache);
 
                 updateJarCounter();
 
+
                 console.log(
-                    "Shared Little Jar synchronized successfully."
+
+                    "Little Jar synchronized:",
+
+                    spaceId,
+
+                    jarNotesCache.length
+
                 );
 
             },
+
 
             error => {
 
@@ -1296,12 +1839,16 @@ async function initializeJar() {
                     error
                 );
 
+
                 if (jarMessage) {
+
                     jarMessage.textContent =
-                        "Could not load shared notes. Please try again.";
+                        "Could not load your notes. Please try again.";
+
                 }
 
             }
+
         );
 
     } catch (error) {
@@ -1311,16 +1858,20 @@ async function initializeJar() {
             error
         );
 
+
         if (jarMessage) {
+
             jarMessage.textContent =
-                "Unable to connect to your shared Little Jar.";
+                "Unable to connect to your Little Jar.";
+
         }
 
     }
+
 }
 
 
-/* ADD A NEW SHARED NOTE */
+/* ADD A NEW NOTE */
 
 if (jarForm) {
 
@@ -1328,23 +1879,30 @@ if (jarForm) {
 
         event.preventDefault();
 
+
         if (!jarInput) return;
 
+
         const message = jarInput.value.trim();
+
 
         if (!message) {
 
             if (jarMessage) {
+
                 jarMessage.textContent =
                     "Write a little something first. ♡";
+
             }
 
             return;
+
         }
 
 
         const submitButton =
             jarForm.querySelector('[type="submit"]');
+
 
         if (submitButton) {
             submitButton.disabled = true;
@@ -1353,19 +1911,20 @@ if (jarForm) {
 
         try {
 
-            const user = await authReady;
+            if (!currentUser || !spaceId) {
 
-            if (!user) {
                 throw new Error("Please log in first.");
+
             }
 
 
             const newNote = {
 
                 id: Date.now().toString() +
+
                     Math.random().toString(36).slice(2),
 
-                message: message,
+                message,
 
                 date: new Date().toISOString()
 
@@ -1373,18 +1932,26 @@ if (jarForm) {
 
 
             await setDoc(
-                doc(db, "littleJar", newNote.id),
+
+                getSpaceDocument(
+                    "littleJar",
+                    newNote.id
+                ),
+
                 newNote
+
             );
 
 
             jarInput.value = "";
 
+
             if (jarMessage) {
+
                 jarMessage.textContent =
                     "Your little note has found a home. ♡";
-            }
 
+            }
 
         } catch (error) {
 
@@ -1393,9 +1960,12 @@ if (jarForm) {
                 error
             );
 
+
             if (jarMessage) {
+
                 jarMessage.textContent =
                     "Could not save your note. Please try again.";
+
             }
 
         } finally {
@@ -1411,7 +1981,7 @@ if (jarForm) {
 }
 
 
-/* PICK A RANDOM SHARED NOTE */
+/* DRAW A RANDOM NOTE */
 
 if (drawMessageButton) {
 
@@ -1419,24 +1989,33 @@ if (drawMessageButton) {
 
         const notes = getJarNotes();
 
+
         if (notes.length === 0) {
 
             if (jarMessage) {
+
                 jarMessage.textContent =
                     "Your jar is empty. Add your first little memory! ♡";
+
             }
 
             return;
+
         }
 
 
         const randomIndex =
             Math.floor(Math.random() * notes.length);
 
+
         const selectedNote = notes[randomIndex];
 
+
         if (jarMessage) {
-            jarMessage.textContent = selectedNote.message;
+
+            jarMessage.textContent =
+                selectedNote.message;
+
         }
 
     });
@@ -1444,22 +2023,131 @@ if (drawMessageButton) {
 }
 
 
-/* INITIALIZE JAR */
+/* ==========================================
+   9. ACCOUNT INITIALIZATION
+   ========================================== */
 
-updateJarCounter();
+async function initializeAccountData() {
 
-if (jarForm || jarCounter || drawMessageButton) {
-    initializeJar();
+    try {
+
+        currentUser = await authReady;
+
+
+        if (!currentUser) {
+
+            console.warn("No authenticated user found.");
+
+            return;
+
+        }
+
+
+        // Require verified email.
+
+        await currentUser.reload();
+
+        if (!currentUser.emailVerified) {
+
+            console.warn("Email is not verified.");
+
+            return;
+
+        }
+
+
+        const userEmail = (currentUser.email || "")
+            .toLowerCase()
+            .trim();
+
+
+        // Original three accounts use shared space.
+        // Every other verified account uses its own UID.
+
+        spaceId = LEGACY_EMAILS.includes(userEmail)
+
+            ? "shared"
+
+            : currentUser.uid;
+
+
+        // Keep old localStorage keys for the original shared
+        // accounts. New accounts receive separate keys.
+
+        if (spaceId === "shared") {
+
+            MEMORY_STORAGE_KEY = "dearMomentsMemories";
+
+            JAR_STORAGE_KEY = "dearMomentsLittleJar";
+
+            GALLERY_STORAGE_KEY = "dearMomentsGallery";
+
+        } else {
+
+            MEMORY_STORAGE_KEY =
+                `dearMomentsMemories_${spaceId}`;
+
+            JAR_STORAGE_KEY =
+                `dearMomentsLittleJar_${spaceId}`;
+
+            GALLERY_STORAGE_KEY =
+                `dearMomentsGallery_${spaceId}`;
+
+        }
+
+
+        console.log(
+            "Dear Moments account space:",
+            spaceId
+        );
+
+
+        // Start account-specific systems.
+
+        await Promise.all([
+
+            initializeMemories(),
+
+            initializeJar()
+
+        ]);
+
+
+        // Gallery remains browser-local, but separated
+        // by account on this browser.
+
+        displayGallery();
+
+
+    } catch (error) {
+
+        console.error(
+            "Account initialization failed:",
+            error
+        );
+
+        alert(
+            "Could not initialize your Dear Moments account. Please refresh and try again."
+        );
+
+    }
+
 }
 
 
 /* ==========================================
-   9. INITIALIZATION
+   10. START APPLICATION
    ========================================== */
 
+initializeAccountData();
+
+
 console.log(
+
     "%c Dear Moments ",
+
     "background: #a5b4fc; color: #080d1c; padding: 8px; border-radius: 8px; font-weight: bold;"
+
 );
 
 console.log(
