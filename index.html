@@ -53,6 +53,16 @@
             <a href="letters.html" class="nav-link">Letters</a>
             <a href="#about" class="nav-link">About</a>
 
+            <!-- LOGOUT BUTTON -->
+            <button
+                type="button"
+                id="logoutBtn"
+                class="nav-link logout-button"
+            >
+                <i data-lucide="log-out"></i>
+                Logout
+            </button>
+
             <a href="#timeline" class="mobile-journey-button">
                 Begin Journey <span>→</span>
             </a>
@@ -453,6 +463,58 @@
     <!-- HOMEPAGE JAVASCRIPT -->
     <script type="module" src="script.js"></script>
 
+    <!-- LOGOUT JAVASCRIPT -->
+    <script type="module">
+
+        import { auth } from "./firebase.js";
+
+        import {
+            signOut
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        const logoutBtn = document.getElementById("logoutBtn");
+
+        if (logoutBtn) {
+
+            logoutBtn.addEventListener("click", async function () {
+
+                const confirmed = confirm(
+                    "Are you sure you want to log out?"
+                );
+
+                if (!confirmed) return;
+
+                logoutBtn.disabled = true;
+                logoutBtn.textContent = "Logging out...";
+
+                try {
+
+                    await signOut(auth);
+
+                    window.location.replace("login.html");
+
+                } catch (error) {
+
+                    console.error("Logout failed:", error);
+
+                    alert("Could not log out. Please try again.");
+
+                    logoutBtn.disabled = false;
+                    logoutBtn.innerHTML =
+                        '<i data-lucide="log-out"></i> Logout';
+
+                    if (window.lucide) {
+                        lucide.createIcons();
+                    }
+
+                }
+
+            });
+
+        }
+
+    </script>
+
     <!-- NAVIGATION JAVASCRIPT -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -520,6 +582,13 @@
                 });
 
             });
+
+            // Close mobile menu after clicking Logout
+            const logoutButton = document.getElementById("logoutBtn");
+
+            if (logoutButton) {
+                logoutButton.addEventListener("click", closeMenu);
+            }
 
             document.addEventListener("keydown", function (event) {
 
