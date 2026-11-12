@@ -57,7 +57,33 @@
             text-align: center;
             color: #a0a9c0;
             font-size: 14px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            padding: 5px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            background: #080d1c;
+        }
+
+        .tab {
+            width: 50%;
+            padding: 11px 8px;
+            border: none;
+            border-radius: 9px;
+            background: transparent;
+            color: #a0a9c0;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .tab.active {
+            background: #151f36;
+            color: #c4b5fd;
         }
 
         .form-group {
@@ -86,7 +112,7 @@
             border-color: #a5b4fc;
         }
 
-        button {
+        .submit-button {
             width: 100%;
             padding: 15px;
             border: none;
@@ -108,6 +134,7 @@
             margin-top: 18px;
             text-align: center;
             font-size: 13px;
+            line-height: 1.6;
             color: #fca5a5;
         }
 
@@ -119,6 +146,10 @@
             text-decoration: none;
             font-size: 13px;
         }
+
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 
@@ -128,41 +159,60 @@
 
         <div class="logo">✦ DEAR MOMENTS ✦</div>
 
-        <h1>Welcome Back.</h1>
+        <h1 id="heading">Welcome Back.</h1>
 
-        <p class="subtitle">
+        <p class="subtitle" id="subtitle">
             Sign in to continue your journey.
         </p>
 
-        <form id="loginForm">
+        <div class="tabs">
+
+            <button type="button" class="tab active" id="loginTab">
+                Sign In
+            </button>
+
+            <button type="button" class="tab" id="registerTab">
+                Create Account
+            </button>
+
+        </div>
+
+        <form id="authForm">
 
             <div class="form-group">
+
                 <label for="email">Email Address</label>
+
                 <input
                     type="email"
                     id="email"
                     placeholder="Enter your email"
-                    autocomplete="username"
+                    autocomplete="email"
                     required
                 >
+
             </div>
 
             <div class="form-group">
+
                 <label for="password">Password</label>
+
                 <input
                     type="password"
                     id="password"
                     placeholder="Enter your password"
                     autocomplete="current-password"
+                    minlength="6"
                     required
                 >
+
             </div>
 
-            <button type="submit" id="loginButton">
+            <button type="submit" class="submit-button" id="submitButton">
                 Sign In
             </button>
 
-            <p id="message" role="status"></p>
+            <p id="message" role="status" aria-live="polite"></p>
 
         </form>
 
@@ -174,74 +224,122 @@
 
     <script type="module">
 
-        import {
-            initializeApp,
-            getApps,
-            getApp
-        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { auth } from "./firebase.js";
 
         import {
-            getAuth,
             signInWithEmailAndPassword,
-            onAuthStateChanged,
-            signOut
+            createUserWithEmailAndPassword,
+            sendEmailVerification,
+            signOut,
+            onAuthStateChanged
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDoKf2d4Do0kqKdttDec_Yu5AW-xocjxqU",
-            authDomain: "dear-moments-bf2a5.firebaseapp.com",
-            projectId: "dear-moments-bf2a5",
-            storageBucket: "dear-moments-bf2a5.firebasestorage.app",
-            messagingSenderId: "699945956834",
-            appId: "1:699945956834:web:2ade64329a09b17451f5bb",
-            measurementId: "G-E2MR90WZPE"
-        };
-
-        // Approved accounts
-        const ALLOWED_EMAILS = [
+        const LEGACY_EMAILS = [
             "shihabreza0075@gmail.com",
             "sadiaafrinruponti4@gmail.com",
             "shihabthedreamer75@gmail.com"
         ];
 
-        const app = getApps().length
-            ? getApp()
-            : initializeApp(firebaseConfig);
-
-        const auth = getAuth(app);
-
-        const loginForm = document.getElementById("loginForm");
+        const authForm = document.getElementById("authForm");
         const emailInput = document.getElementById("email");
         const passwordInput = document.getElementById("password");
-        const loginButton = document.getElementById("loginButton");
+
+        const submitButton = document.getElementById("submitButton");
         const message = document.getElementById("message");
 
+        const loginTab = document.getElementById("loginTab");
+        const registerTab = document.getElementById("registerTab");
+
+        const heading = document.getElementById("heading");
+        const subtitle = document.getElementById("subtitle");
+
+        let currentMode = "login";
         let redirecting = false;
 
-        function isAllowed(email) {
-            return ALLOWED_EMAILS.includes(
+        function isLegacyUser(email) {
+            return LEGACY_EMAILS.includes(
                 (email || "").toLowerCase().trim()
             );
         }
 
+        function showMessage(text, success = false) {
+            message.textContent = text;
+            message.style.color = success ? "#a5b4fc" : "#fca5a5";
+        }
+
+        function setLoading(loading, text) {
+            submitButton.disabled = loading;
+
+            if (loading) {
+                submitButton.textContent = text;
+            } else {
+                submitButton.textContent =
+                    currentMode === "login"
+                        ? "Sign In"
+                        : "Create Account";
+            }
+        }
+
+        function switchMode(mode) {
+
+            currentMode = mode;
+
+            message.textContent = "";
+
+            if (mode === "login") {
+
+                heading.textContent = "Welcome Back.";
+                subtitle.textContent =
+                    "Sign in to continue your journey.";
+
+                submitButton.textContent = "Sign In";
+
+                passwordInput.autocomplete = "current-password";
+
+                loginTab.classList.add("active");
+                registerTab.classList.remove("active");
+
+            } else {
+
+                heading.textContent = "Join Dear Moments.";
+                subtitle.textContent =
+                    "Create your personal space for precious memories.";
+
+                submitButton.textContent = "Create Account";
+
+                passwordInput.autocomplete = "new-password";
+
+                registerTab.classList.add("active");
+                loginTab.classList.remove("active");
+
+            }
+
+        }
+
+        loginTab.addEventListener("click", () => {
+            switchMode("login");
+        });
+
+        registerTab.addEventListener("click", () => {
+            switchMode("register");
+        });
+
+        // Check existing authentication
         onAuthStateChanged(auth, async (user) => {
 
-            if (redirecting) return;
+            if (!user || redirecting) return;
 
-            if (!user) return;
+            if (user.emailVerified) {
 
-            if (isAllowed(user.email)) {
                 redirecting = true;
+
                 window.location.replace("index.html");
-            } else {
-                await signOut(auth);
-                message.textContent =
-                    "This account is not authorized.";
+
             }
 
         });
 
-        loginForm.addEventListener("submit", async (event) => {
+        authForm.addEventListener("submit", async (event) => {
 
             event.preventDefault();
 
@@ -250,58 +348,116 @@
             const email = emailInput.value.trim().toLowerCase();
             const password = passwordInput.value;
 
-            loginButton.disabled = true;
-            loginButton.textContent = "Signing in...";
+            setLoading(true, currentMode === "login"
+                ? "Signing in..."
+                : "Creating account..."
+            );
+
             message.textContent = "";
 
             try {
 
-                if (!isAllowed(email)) {
-                    throw new Error("not-approved");
-                }
+                if (currentMode === "login") {
 
-                const result = await signInWithEmailAndPassword(
-                    auth,
-                    email,
-                    password
-                );
+                    const result = await signInWithEmailAndPassword(
+                        auth,
+                        email,
+                        password
+                    );
 
-                if (!isAllowed(result.user.email)) {
+                    await result.user.reload();
+
+                    if (!result.user.emailVerified) {
+
+                        await signOut(auth);
+
+                        showMessage(
+                            "Please verify your email before signing in. Check your inbox."
+                        );
+
+                        setLoading(false);
+                        return;
+
+                    }
+
+                    redirecting = true;
+
+                    showMessage("Login successful!", true);
+
+                    window.location.replace("index.html");
+
+                } else {
+
+                    // New accounts cannot claim the shared space.
+                    if (isLegacyUser(email)) {
+
+                        showMessage(
+                            "This email already belongs to an existing account. Please use Sign In."
+                        );
+
+                        setLoading(false);
+                        return;
+
+                    }
+
+                    const result = await createUserWithEmailAndPassword(
+                        auth,
+                        email,
+                        password
+                    );
+
+                    await sendEmailVerification(result.user);
+
                     await signOut(auth);
-                    throw new Error("not-approved");
+
+                    showMessage(
+                        "Account created! A verification email has been sent. Verify your email, then return here to sign in.",
+                        true
+                    );
+
+                    authForm.reset();
+
+                    switchMode("login");
+
                 }
-
-                redirecting = true;
-                message.style.color = "#a5b4fc";
-                message.textContent = "Login successful!";
-
-                window.location.replace("index.html");
 
             } catch (error) {
 
-                console.error(error);
+                console.error("Authentication error:", error);
 
-                message.style.color = "#fca5a5";
+                const errorMessages = {
 
-                if (error.message === "not-approved") {
-                    message.textContent =
-                        "This email is not on the approved account list.";
-                } else if (
-                    error.code === "auth/invalid-credential" ||
-                    error.code === "auth/wrong-password" ||
-                    error.code === "auth/user-not-found"
-                ) {
-                    message.textContent =
-                        "Incorrect email or password.";
-                } else {
-                    message.textContent =
-                        "Login failed. Please try again.";
-                }
+                    "auth/email-already-in-use":
+                        "This email is already registered. Please sign in.",
 
-                loginButton.disabled = false;
-                loginButton.textContent = "Sign In";
+                    "auth/invalid-email":
+                        "Please enter a valid email address.",
+
+                    "auth/weak-password":
+                        "Password must contain at least 6 characters.",
+
+                    "auth/invalid-credential":
+                        "Incorrect email or password.",
+
+                    "auth/user-disabled":
+                        "This account has been disabled.",
+
+                    "auth/too-many-requests":
+                        "Too many attempts. Please try again later.",
+
+                    "auth/network-request-failed":
+                        "Network error. Please check your internet connection."
+
+                };
+
+                showMessage(
+                    errorMessages[error.code] ||
+                    "Something went wrong. Please try again."
+                );
 
             }
+
+            setLoading(false);
 
         });
 
