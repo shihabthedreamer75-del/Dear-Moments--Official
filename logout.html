@@ -1,0 +1,29 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signing Out — Dear Moments</title>
+</head>
+<body>
+    <p id="status">Signing out...</p>
+
+    <script type="module">
+        import { auth } from "./firebase.js";
+        import { signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        const status = document.getElementById("status");
+
+        try {
+            await signOut(auth);
+            status.textContent = "Signed out successfully.";
+
+            window.location.replace("login.html");
+        } catch (error) {
+            console.error(error);
+            status.textContent = "Sign out failed: " + error.message;
+        }
+    </script>
+</body>
+</html>

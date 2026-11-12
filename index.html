@@ -1,0 +1,559 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dear Moments — Memories That Stay</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet">
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+    <!-- BACKGROUND -->
+    <div class="background-glow"></div>
+    <div class="stars" id="stars"></div>
+
+    <!-- NAVIGATION -->
+    <header class="navbar">
+
+        <a href="#home" class="logo">
+            <span class="logo-icon">✦</span>
+            dear moments
+        </a>
+
+        <button
+            class="menu-toggle"
+            id="menuToggle"
+            aria-label="Open navigation menu"
+            aria-expanded="false"
+            aria-controls="navMenu"
+            type="button"
+        >
+            <i data-lucide="menu"></i>
+        </button>
+
+        <nav id="navMenu">
+
+            <a href="#home" class="nav-link">Home</a>
+            <a href="#memories" class="nav-link">Memories</a>
+            <a href="#timeline" class="nav-link">Our Journey</a>
+            <a href="#gallery" class="nav-link">Gallery</a>
+            <a href="#little-jar" class="nav-link">Little Jar</a>
+            <a href="letters.html" class="nav-link">Letters</a>
+            <a href="#about" class="nav-link">About</a>
+
+            <a href="#timeline" class="mobile-journey-button">
+                Begin Journey <span>→</span>
+            </a>
+
+        </nav>
+
+        <a href="#timeline" class="nav-button">
+            Begin Journey
+        </a>
+
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="hero" id="home">
+
+        <div class="hero-content">
+
+            <div class="eyebrow">
+                <span class="live-dot"></span>
+                A LITTLE PLACE FOR BEAUTIFUL MEMORIES
+            </div>
+
+            <h1>
+                Some moments<br>
+                deserve to live<br>
+                <span>forever.</span>
+            </h1>
+
+            <p class="hero-description">
+                A quiet little corner of the universe where
+                memories find a home, words remain unsaid,
+                and beautiful moments never fade away.
+            </p>
+
+            <div class="hero-actions">
+
+                <button class="primary-button" onclick="scrollToMemories()">
+                    Explore Memories
+                    <span>→</span>
+                </button>
+
+                <a href="letters.html" class="secondary-button">
+                    Read the Letters
+                </a>
+
+            </div>
+
+            <div class="hero-note">
+                <span class="note-line"></span>
+                Every little moment matters.
+            </div>
+
+        </div>
+
+        <div class="moon-scene">
+
+            <div class="moon-halo"></div>
+            <div class="orbit orbit-one"></div>
+            <div class="orbit orbit-two"></div>
+            <div class="moon"></div>
+
+            <span class="floating-star star-one">✦</span>
+            <span class="floating-star star-two">✧</span>
+            <span class="floating-star star-three">✦</span>
+
+            <div class="moon-caption">
+                <span>UNDER THE SAME SKY</span>
+                <p>Somewhere between dreams and memories.</p>
+            </div>
+
+        </div>
+
+        <div class="scroll-indicator">
+            SCROLL TO EXPLORE
+            <span></span>
+        </div>
+
+    </section>
+
+    <!-- MEMORIES SECTION -->
+    <section class="memories-section" id="memories">
+
+        <span class="section-label">A COLLECTION OF MOMENTS</span>
+
+        <h2>
+            Little things,<br>
+            <span>lasting forever.</span>
+        </h2>
+
+        <p class="section-description">
+            Not everything needs to be extraordinary.
+            Sometimes the smallest things become
+            the most beautiful memories.
+        </p>
+
+        <div class="memory-grid">
+
+            <div class="memory-card">
+                <div class="card-icon">
+                    <i data-lucide="mail"></i>
+                </div>
+                <span>01 / WORDS</span>
+                <h3>Unsent Letters</h3>
+                <p>
+                    Words that were written but never sent.
+                    Feelings that deserve a place to stay.
+                </p>
+                <a href="letters.html" class="card-link">
+                    Open Letters <span>→</span>
+                </a>
+            </div>
+
+            <div class="memory-card">
+                <div class="card-icon">
+                    <i data-lucide="images"></i>
+                </div>
+                <span>02 / PHOTOGRAPHS</span>
+                <h3>Memory Gallery</h3>
+                <p>
+                    A collection of photographs that
+                    hold stories beyond words.
+                </p>
+                <a href="#gallery" class="card-link">
+                    Explore Gallery <span>→</span>
+                </a>
+            </div>
+
+            <div class="memory-card">
+                <div class="card-icon">
+                    <i data-lucide="heart"></i>
+                </div>
+                <span>03 / LITTLE THINGS</span>
+                <h3>Little Things Jar</h3>
+                <p>
+                    Save little thoughts, beautiful words
+                    and moments worth remembering.
+                </p>
+                <a href="#little-jar" class="card-link">
+                    Open the Jar <span>→</span>
+                </a>
+            </div>
+
+            <div class="memory-card">
+                <div class="card-icon">
+                    <i data-lucide="clock"></i>
+                </div>
+                <span>04 / TIMELINE</span>
+                <h3>Our Journey</h3>
+                <p>
+                    Every chapter has a story.
+                    Keep the important moments alive.
+                </p>
+                <a href="#timeline" class="card-link">
+                    Explore Journey <span>→</span>
+                </a>
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- MEMORY TIMELINE -->
+    <section class="timeline-section" id="timeline">
+
+        <div class="timeline-container">
+
+            <span class="section-label">THE STORY SO FAR</span>
+
+            <h2>
+                Moments that<br>
+                <span>made us.</span>
+            </h2>
+
+            <p class="timeline-description">
+                Every memory has a story.
+                Save the moments you never want to forget
+                and revisit them whenever you wish.
+            </p>
+
+            <form class="memory-form" id="memoryForm">
+
+                <div class="form-heading">
+                    <div class="form-icon">
+                        <i data-lucide="feather"></i>
+                    </div>
+                    <div>
+                        <h3>Add a Memory</h3>
+                        <p>Give a beautiful moment a place to stay.</p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="memoryTitle">Memory Title</label>
+                    <input
+                        type="text"
+                        id="memoryTitle"
+                        placeholder="Give your memory a name..."
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="memoryDate">Date</label>
+                    <input type="date" id="memoryDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="memoryDescription">Your Story</label>
+                    <textarea
+                        id="memoryDescription"
+                        placeholder="Write something about this moment..."
+                        required
+                    ></textarea>
+                </div>
+
+                <button type="submit" class="save-memory-button">
+                    Save This Memory
+                    <span>♡</span>
+                </button>
+
+            </form>
+
+            <div class="timeline-heading">
+                <span>YOUR PERSONAL COLLECTION</span>
+                <h3>Saved Memories</h3>
+            </div>
+
+            <div class="timeline-list" id="timelineList">
+
+                <div class="empty-message">
+                    <span>✧</span>
+                    <p>No memories added yet.</p>
+                    <small>Your beautiful journey starts here.</small>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- PHOTO GALLERY -->
+    <section class="gallery-section" id="gallery">
+
+        <div class="gallery-container">
+
+            <span class="section-label">
+                A THOUSAND WORDS IN ONE FRAME
+            </span>
+
+            <h2>Captured <span>moments.</span></h2>
+
+            <p class="gallery-description">
+                Photographs are little time machines.
+                Keep your favourite moments close
+                and revisit them whenever you want.
+            </p>
+
+            <div class="gallery-upload">
+
+                <div class="gallery-upload-icon">
+                    <i data-lucide="image-plus"></i>
+                </div>
+
+                <h3>Add a New Memory</h3>
+
+                <p>
+                    Choose photographs that mean something to you.
+                </p>
+
+                <label for="photoInput" class="upload-button">
+                    <i data-lucide="upload"></i>
+                    Choose Photos
+                </label>
+
+                <input
+                    type="file"
+                    id="photoInput"
+                    accept="image/*"
+                    multiple
+                    hidden
+                >
+
+                <small>Select one or multiple images.</small>
+
+            </div>
+
+            <div class="gallery-heading">
+                <span>YOUR PHOTO COLLECTION</span>
+                <h3>Beautifully Remembered</h3>
+            </div>
+
+            <div class="gallery-grid" id="galleryGrid">
+
+                <div class="empty-gallery">
+                    <span>✧</span>
+                    <p>Your gallery is waiting.</p>
+                    <small>Add your first photograph to begin.</small>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- LITTLE THINGS JAR -->
+    <section class="jar-section" id="little-jar">
+
+        <div class="jar-container">
+
+            <span class="section-label">
+                A JAR FULL OF LITTLE THOUGHTS
+            </span>
+
+            <h2>The Little Things <span>Jar.</span></h2>
+
+            <p class="jar-subtitle">
+                Write down little thoughts, beautiful words,
+                happy moments or anything you want to remember.
+                Put them in your jar and pick one whenever you wish.
+            </p>
+
+            <div class="jar-illustration">
+                <div class="jar-icon">🫙</div>
+                <p>A little thought, a forever memory.</p>
+            </div>
+
+            <form class="jar-form" id="jarForm">
+
+                <textarea
+                    id="jarInput"
+                    placeholder="Write a little something worth remembering..."
+                    maxlength="1000"
+                    required
+                ></textarea>
+
+                <button type="submit" class="jar-save-button">
+                    <i data-lucide="heart"></i>
+                    Add to Our Jar
+                </button>
+
+            </form>
+
+            <div class="jar-display">
+
+                <span class="jar-message-icon">✧</span>
+
+                <p id="jarMessage">
+                    Every little thought deserves to be remembered. ♡
+                </p>
+
+                <span id="jarCounter">
+                    0 little memories saved
+                </span>
+
+            </div>
+
+            <button
+                type="button"
+                class="jar-draw-button"
+                id="drawMessageButton"
+            >
+                <i data-lucide="sparkles"></i>
+                Pick a Little Memory
+            </button>
+
+        </div>
+
+    </section>
+
+    <!-- ABOUT -->
+    <section class="about-section" id="about">
+
+        <div class="about-symbol">✦</div>
+
+        <p class="about-quote">
+            "Some memories are not meant to be forgotten.
+            They are meant to be carried quietly,
+            somewhere deep within the heart."
+        </p>
+
+        <span class="about-caption">
+            WITH LOVE, DEAR MOMENTS
+        </span>
+
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+
+        <p>© 2026 Dear Moments. All rights reserved.</p>
+
+        <span>Made of memories and little things. ♡</span>
+
+    </footer>
+
+    <!-- HOMEPAGE JAVASCRIPT -->
+    <script type="module" src="script.js"></script>
+
+    <!-- NAVIGATION JAVASCRIPT -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const menuToggle = document.getElementById("menuToggle");
+            const navMenu = document.getElementById("navMenu");
+
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+
+            if (!menuToggle || !navMenu) {
+                console.error("Navigation elements were not found.");
+                return;
+            }
+
+            function closeMenu() {
+
+                navMenu.classList.remove("active");
+                menuToggle.classList.remove("active");
+
+                menuToggle.setAttribute("aria-expanded", "false");
+                menuToggle.setAttribute("aria-label", "Open navigation menu");
+
+                menuToggle.innerHTML = '<i data-lucide="menu"></i>';
+
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+            }
+
+            function openMenu() {
+
+                navMenu.classList.add("active");
+                menuToggle.classList.add("active");
+
+                menuToggle.setAttribute("aria-expanded", "true");
+                menuToggle.setAttribute("aria-label", "Close navigation menu");
+
+                menuToggle.innerHTML = '<i data-lucide="x"></i>';
+
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+            }
+
+            menuToggle.addEventListener("click", function (event) {
+
+                event.stopPropagation();
+
+                const isOpen = navMenu.classList.contains("active");
+
+                if (isOpen) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
+
+            });
+
+            navMenu.querySelectorAll("a").forEach(function (link) {
+
+                link.addEventListener("click", function () {
+                    closeMenu();
+                });
+
+            });
+
+            document.addEventListener("keydown", function (event) {
+
+                if (event.key === "Escape") {
+                    closeMenu();
+                }
+
+            });
+
+            document.addEventListener("click", function (event) {
+
+                if (
+                    navMenu.classList.contains("active") &&
+                    !navMenu.contains(event.target) &&
+                    !menuToggle.contains(event.target)
+                ) {
+                    closeMenu();
+                }
+
+            });
+
+            window.addEventListener("resize", function () {
+
+                if (window.innerWidth > 900) {
+                    closeMenu();
+                }
+
+            });
+
+        });
+    </script>
+
+    <!-- FIREBASE AUTHENTICATION GUARD -->
+    <script type="module" src="auth-guard.js"></script>
+
+</body>
+</html>

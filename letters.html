@@ -1,0 +1,307 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Unsent Letters — Dear Moments</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="letters.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body class="letters-page">
+
+    <!-- Background Stars -->
+    <div id="stars"></div>
+
+    <!-- Navbar -->
+    <header class="navbar">
+
+        <a href="index.html#home" class="logo">
+            <span class="logo-icon">✦</span>
+            dear moments
+        </a>
+
+        <nav>
+            <a href="index.html#home">Home</a>
+            <a href="index.html#memories">Memories</a>
+            <a href="index.html#timeline">Our Journey</a>
+            <a href="index.html#gallery">Gallery</a>
+            <a href="index.html#little-jar">Little Jar</a>
+            <a href="letters.html" class="active">Letters</a>
+            <a href="index.html#about">About</a>
+        </nav>
+
+        <a href="index.html#timeline" class="nav-button">
+            Begin Journey
+        </a>
+
+    </header>
+
+
+    <!-- Letters Hero -->
+    <section class="letters-hero">
+
+        <div class="letters-hero-content">
+
+            <span class="hero-tag">
+                <i class="fa-regular fa-envelope"></i>
+                A place for unsent words
+            </span>
+
+            <h1>
+                Letters from <span>the heart.</span>
+            </h1>
+
+            <p>
+                Some words are too precious to be forgotten.
+                Write them here, save them, and keep them close.
+            </p>
+
+            <a href="#write-letter" class="hero-button">
+                Write a Letter
+                <i class="fa-solid fa-arrow-down"></i>
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- Write Letter Section -->
+    <section class="letter-editor section" id="write-letter">
+
+        <div class="section-heading">
+
+            <span class="section-tag">
+                YOUR WORDS, YOUR SPACE
+            </span>
+
+            <h2>Write something beautiful.</h2>
+
+            <p>
+                Let your thoughts find their way onto paper.
+            </p>
+
+        </div>
+
+
+        <div class="letter-paper">
+
+            <div class="paper-decoration">
+                <i class="fa-solid fa-feather-pointed"></i>
+            </div>
+
+            <form id="letterForm">
+
+                <div class="form-group">
+
+                    <label for="letterTitle">
+                        Letter Title
+                    </label>
+
+                    <input
+                        type="text"
+                        id="letterTitle"
+                        placeholder="A letter I never sent..."
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="letterRecipient">
+                        To someone special
+                    </label>
+
+                    <input
+                        type="text"
+                        id="letterRecipient"
+                        placeholder="Who is this letter for?"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="letterMessage">
+                        Your Letter
+                    </label>
+
+                    <textarea
+                        id="letterMessage"
+                        rows="10"
+                        maxlength="5000"
+                        placeholder="Dear someone...
+
+Write whatever your heart wants to say..."
+                        required
+                    ></textarea>
+
+                    <div class="character-counter">
+                        <span id="characterCount">0</span> / 5000
+                    </div>
+
+                </div>
+
+
+                <button type="submit" class="save-letter-btn">
+                    <i class="fa-regular fa-envelope"></i>
+                    Save This Letter
+                </button>
+
+            </form>
+
+        </div>
+
+    </section>
+
+
+    <!-- Saved Letters Section -->
+    <section class="saved-letters section" id="saved-letters">
+
+        <div class="section-heading">
+
+            <span class="section-tag">
+                YOUR PRIVATE COLLECTION
+            </span>
+
+            <h2>Saved Letters.</h2>
+
+            <p>
+                Every letter holds a little piece of a moment.
+            </p>
+
+            <div class="saved-letter-count">
+                <span id="letterCount">0</span> Letters Saved
+            </div>
+
+        </div>
+
+
+        <div id="lettersContainer" class="letters-container">
+
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    <i class="fa-regular fa-envelope-open"></i>
+                </div>
+
+                <h3>No letters yet.</h3>
+
+                <p>
+                    Your first letter is waiting to be written.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- Envelope Animation -->
+    <div id="envelopeOverlay" class="envelope-overlay">
+
+        <div id="animatedEnvelope" class="animated-envelope">
+
+            <div class="envelope-back"></div>
+
+            <div class="envelope-letter">
+                <i class="fa-regular fa-heart"></i>
+            </div>
+
+            <div class="envelope-flap"></div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Read Letter Modal -->
+    <div id="letterModal" class="letter-modal">
+
+        <div class="letter-modal-content">
+
+            <button
+                type="button"
+                id="closeModal"
+                class="close-modal"
+                aria-label="Close letter"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+
+            <div class="modal-decoration">
+                <i class="fa-regular fa-envelope-open"></i>
+            </div>
+
+
+            <div class="modal-letter-content">
+
+                <span class="modal-date" id="modalDate"></span>
+
+                <h2 id="modalTitle"></h2>
+
+                <p class="modal-recipient">
+                    To: <span id="modalRecipient"></span>
+                </p>
+
+                <div class="modal-divider"></div>
+
+                <p id="modalMessage" class="modal-message"></p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Footer -->
+    <footer class="footer">
+
+        <div class="footer-content">
+
+            <a href="index.html#home" class="logo">
+                <span class="logo-icon">✦</span>
+                dear moments
+            </a>
+
+            <p>
+                A little corner of the internet,
+                made for memories that matter.
+            </p>
+
+            <span class="footer-bottom">
+                Made with care · Dear Moments
+            </span>
+
+        </div>
+
+    </footer>
+
+
+    <!-- JavaScript -->
+    <script type="module" src="script.js"></script>
+    <script type="module" src="letters.js"></script>
+    <script type="module" src="auth-guard.js"></script>
+
+</body>
+</html>
